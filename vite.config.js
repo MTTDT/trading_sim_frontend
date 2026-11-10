@@ -4,20 +4,22 @@ import react from "@vitejs/plugin-react"
 import tailwindcss from "@tailwindcss/vite"
 
 export default defineConfig(({ mode }) => {
-  // Load env vars for the current mode (development/production/etc.)
-  // Third arg "" loads ALL vars (not just VITE_*)
-  const env = loadEnv(mode, process.cwd(), "")
 
+  const envDir = path.resolve(__dirname, "..") 
+  const env = loadEnv(mode, envDir, "")
   const backendUrl = env.VITE_BACKEND_URL || "http://localhost:3001"
 
   return {
     plugins: [react(), tailwindcss()],
     resolve: { alias: { "@": path.resolve(__dirname, "./src") } },
     server: {
+      allowedHosts: [".trycloudflare.com"],
       proxy: {
         // /api/auth/login -> http://localhost:3001/auth/login
         "/api": {
           target: backendUrl,
+          changeOrigin: true,
+          secure: true,
           rewrite: (p) => p.replace(/^\/api/, ""),
         },
       },
